@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import MainLayout from '../../components/layout/MainLayout';
 import { PlusCircle, Loader } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
+import { useNotification } from '../../context/NotificationContext';
 
 interface Medicine {
   _id?: string;
@@ -51,9 +52,19 @@ interface InventoryItem {
   reorderLevel: number;
 }
 
+interface LowStockItem {
+  _id: string;
+  medicine: Medicine;
+  quantity: number;
+  unit: string;
+  reorderLevel: number;
+  status: 'Low Stock' | 'Out of Stock';
+}
+
 const InventoryManagement: React.FC = () => {
   const navigate = useNavigate();
   const { token, isAuthenticated } = useUser();
+  const { showNotification } = useNotification();
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [formData, setFormData] = useState<Medicine>({
     name: '',
@@ -72,6 +83,7 @@ const InventoryManagement: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lowStockItems, setLowStockItems] = useState<LowStockItem[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -274,6 +286,64 @@ const InventoryManagement: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const fetchLowStockItems = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/inventory/low-stock', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch low stock items');
+      }
+
+      const data = await response.json();
+      setLowStockItems(data);
+    } catch (error) {
+      console.error('Error fetching low stock items:', error);
+      showNotification('error', 'Failed to fetch low stock items');
+    }
+  };
+
+  const handleRestock = async (itemId: string) => {
+    try {
+      // Find the item to get its current quantity and reorder level
+      const item = lowStockItems.find(i => i._id === itemId);
+      if (!item) return;
+
+      // Calculate the quantity to add (difference between reorder level and current quantity plus some buffer)
+      const quantityToAdd = (item.reorderLevel - item.quantity) + 10; // Adding 10 as buffer
+
+      const response = await fetch(`http://localhost:5000/api/inventory/${itemId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          quantity: item.quantity + quantityToAdd,
+          lastRestocked: new Date().toISOString()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to restock item');
+      }
+
+      // Refresh the low stock items list
+      await fetchLowStockItems();
+      showNotification('success', `Successfully restocked ${item.medicine.name}`);
+    } catch (error) {
+      console.error('Error restocking item:', error);
+      showNotification('error', 'Failed to restock item');
+    }
+  };
+
+  useEffect(() => {
+    fetchLowStockItems();
+  }, [token]);
 
   if (pageLoading) {
     return (
@@ -523,6 +593,43 @@ const InventoryManagement: React.FC = () => {
               </table>
             </div>
           )}
+        </div>
+
+        {/* Low Stock Alert */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Low Stock Alert</h2>
+          {lowStockItems.length === 0 ? (
+            <div className="text-center py-6 text-gray-500">
+              No low stock items at the moment
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {lowStockItems.map((item) => (
+                <div key={item._id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                  <div>
+                    <h3 className="font-medium text-gray-900">{item.medicine.name}</h3>
+                    <div className="text-sm text-red-600 mt-1">
+                      Current Stock: {item.quantity} {item.unit} (Min: {item.reorderLevel})
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => handleRestock(item._id)}
+                    className="px-3 py-1 bg-teal-600 text-white text-sm rounded-md hover:bg-teal-700"
+                  >
+                    Restock
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="mt-4 text-center">
+            <button 
+              onClick={() => window.location.href = '/inventory'}
+              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+            >
+              View Full Inventory
+            </button>
+          </div>
         </div>
       </div>
     </MainLayout>

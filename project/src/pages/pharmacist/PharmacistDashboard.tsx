@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '../../components/layout/MainLayout';
 import StatCard from '../../components/dashboard/StatCard';
 import RecentSalesTable from '../../components/dashboard/RecentSalesTable';
 import InventoryStatusCard from '../../components/dashboard/InventoryStatusCard';
+import NotificationBell from '../../components/NotificationBell';
 import { 
-  PillIcon, Package, Receipt, ShoppingCart 
+  PillIcon, Package, Receipt, ShoppingCart, ClipboardList 
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useUser } from '../../context/UserContext';
+import { useNavigate } from 'react-router-dom';
 
 // Mock data for daily sales
 const dailySalesData = [
@@ -20,8 +23,35 @@ const dailySalesData = [
 ];
 
 const PharmacistDashboard = () => {
+  const { token } = useUser();
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchLowStockCount = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/inventory/low-stock', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setLowStockCount(data.length);
+        }
+      } catch (error) {
+        console.error('Error fetching low stock count:', error);
+      }
+    };
+
+    fetchLowStockCount();
+  }, [token]);
+
   return (
-    <MainLayout title="Pharmacist Dashboard">
+    <MainLayout 
+      title="Pharmacist Dashboard"
+      headerElements={<NotificationBell />}
+    >
       <div className="space-y-6">
         {/* Stats Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -43,7 +73,7 @@ const PharmacistDashboard = () => {
           />
           <StatCard 
             title="Low Stock Items" 
-            value="8" 
+            value={lowStockCount.toString()} 
             icon={<Package size={24} />}
             change={{ value: 2, isPositive: false }}
             bgColor="bg-red-100"
@@ -92,35 +122,6 @@ const PharmacistDashboard = () => {
           <div>
             <InventoryStatusCard />
           </div>
-        </div>
-
-        {/* Recent Sales */}
-        <div>
-          <RecentSalesTable limit={5} />
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <button className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center gap-2">
-            <div className="bg-indigo-100 p-3 rounded-full">
-              <ShoppingCart size={24} className="text-indigo-600" />
-            </div>
-            <span className="font-medium text-gray-800">New Sale</span>
-          </button>
-          
-          <button className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center gap-2">
-            <div className="bg-teal-100 p-3 rounded-full">
-              <PillIcon size={24} className="text-teal-600" />
-            </div>
-            <span className="font-medium text-gray-800">Check Medicine</span>
-          </button>
-          
-          <button className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center gap-2">
-            <div className="bg-amber-100 p-3 rounded-full">
-              <Package size={24} className="text-amber-600" />
-            </div>
-            <span className="font-medium text-gray-800">Update Inventory</span>
-          </button>
         </div>
       </div>
     </MainLayout>

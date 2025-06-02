@@ -19,6 +19,7 @@ import AddMedicine from './pages/admin/AddMedicine';
 import AddUser from './pages/admin/AddUser';
 import AddSupplier from './pages/admin/AddSupplier';
 import NewSale from './pages/admin/NewSale';
+import OrdersManagement from './pages/shared/OrdersManagement';
 
 function App() {
   return (
@@ -106,6 +107,14 @@ function App() {
             
             {/* Not Found Route */}
             <Route path="*" element={<NotFoundPage />} />
+            <Route 
+              path="/orders" 
+              element={
+                <ProtectedRoute>
+                  <OrdersManagement />
+                </ProtectedRoute>
+              } 
+            />
           </Routes>
         </Router>
       </NotificationProvider>
