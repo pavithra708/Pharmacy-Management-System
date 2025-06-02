@@ -1,5 +1,12 @@
 # Pharmacy Management System
 
+![Pharmacy Management System Dashboard](images/dashboard.png)
+![Pharmacy Management System login](images/login.png)
+![Pharmacy Management System Dashboard](images/user.png)
+![Pharmacy Management System Dashboard](images/medicine.png)
+![Pharmacy Management System Dashboard](images/report.png)
+![Pharmacy Management System Dashboard](images/profile.png)
+
 A comprehensive web-based solution for managing pharmacy operations, inventory, and sales.
 
 ## Features
