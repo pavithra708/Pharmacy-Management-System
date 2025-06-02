@@ -1,13 +1,16 @@
 # Pharmacy Management System
 
-![Pharmacy Management System Dashboard](images/dashboard.png)
-![Pharmacy Management System login](images/login.png)
-![Pharmacy Management System Dashboard](images/user.png)
-![Pharmacy Management System Dashboard](images/medicine.png)
-![Pharmacy Management System Dashboard](images/report.png)
-![Pharmacy Management System Dashboard](images/profile.png)
-
 A comprehensive web-based solution for managing pharmacy operations, inventory, and sales.
+
+![Pharmacy Management System Dashboard](images/dashboard.jpg)
+![Pharmacy Management System login](images/login.jpg)
+![Pharmacy Management System Dashboard](images/user.jpg)
+![Pharmacy Management System Dashboard](images/medicine.jpg)
+![Pharmacy Management System Dashboard](images/report.jpg)
+![Pharmacy Management System Dashboard](images/profile.jpg)
+
+## 🚀 Live Demo
+Visit the live application: [Pharmacy Management System](https://pharmacy-management-system-phi.vercel.app/)
 
 ## Features
 
